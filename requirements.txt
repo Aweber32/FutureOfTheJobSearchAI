@@ -1,0 +1,7 @@
+# Azure Functions and dependencies for ELEV8R Embedding Service
+azure-functions>=1.18.0
+sentence-transformers>=2.2.2
+pyodbc>=4.0.39
+numpy>=1.21.6
+transformers>=4.30.0
+torch>=2.0.0

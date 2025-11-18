@@ -1,0 +1,37 @@
+# Azure Functions
+.python_packages/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+local.settings.json
+*.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment
+.env
+*.env
+
+# Models (if downloading locally)
+models/
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
