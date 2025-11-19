@@ -191,7 +191,10 @@ class DBClient:
             ValueError: If entity not found or entity_type is invalid
             Exception: If database operation fails
         """
+        # Whitelist validation for entity_type (defense in depth)
         entity_type_lower = entity_type.lower()
+        if entity_type_lower not in ["candidate", "position"]:
+            raise ValueError(f"Invalid entity_type: {entity_type}. Must be 'Candidate' or 'Position'")
         
         if entity_type_lower == "candidate":
             table = "dbo.Seekers"

@@ -60,7 +60,7 @@ def trigger_embedding(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
         
-        # Validate entity type
+        # Validate entity type (whitelist)
         if entity_type not in ['Candidate', 'Position']:
             return func.HttpResponse(
                 json.dumps({
@@ -71,7 +71,24 @@ def trigger_embedding(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
         
+        # Validate entity_id is numeric (prevent SQL injection attempts)
+        try:
+            entity_id_int = int(entity_id)
+            if entity_id_int <= 0:
+                raise ValueError("ID must be positive")
+        except (ValueError, TypeError):
+            return func.HttpResponse(
+                json.dumps({
+                    "status": "error",
+                    "message": "entityId must be a positive integer"
+                }),
+                status_code=400,
+                mimetype="application/json"
+            )
+        
+        # Audit log (who, what, when)
         logging.info(f'Processing embedding for {entity_type} ID: {entity_id}')
+        logging.info(f'Request from IP: {req.headers.get("X-Forwarded-For", "unknown")}')
         
         # Generate embedding with timeout awareness
         import time
@@ -101,11 +118,12 @@ def trigger_embedding(req: func.HttpRequest) -> func.HttpResponse:
         
     except Exception as e:
         logging.error(f'Error processing embedding: {str(e)}', exc_info=True)
+        # Don't expose internal error details to clients
         return func.HttpResponse(
             json.dumps({
                 "status": "error",
-                "message": str(e),
-                "type": type(e).__name__
+                "message": "An internal error occurred. Please contact support.",
+                "error_id": logging.error(f'Error ID for tracking: {id(e)}')  # Log correlation ID
             }),
             status_code=500,
             mimetype="application/json"
