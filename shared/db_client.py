@@ -91,9 +91,15 @@ class DBClient:
             conn_str_no_auth = conn_str_no_auth.replace("Authentication=ActiveDirectoryIntegrated;", "")
             conn_str_no_auth = conn_str_no_auth.replace("Authentication=ActiveDirectoryInteractive;", "")
             
-            # Add Driver if missing
+            # Add Driver if missing - detect platform
             if "Driver=" not in conn_str_no_auth:
-                conn_str_no_auth = "Driver={ODBC Driver 17 for SQL Server};" + conn_str_no_auth
+                import platform
+                if platform.system() == "Linux":
+                    # Linux uses ODBC Driver 18 or 17 for SQL Server
+                    conn_str_no_auth = "Driver={ODBC Driver 18 for SQL Server};" + conn_str_no_auth
+                else:
+                    # Windows
+                    conn_str_no_auth = "Driver={ODBC Driver 17 for SQL Server};" + conn_str_no_auth
             
             conn = pyodbc.connect(conn_str_no_auth, attrs_before={1256: token_struct}, timeout=30)
             logging.debug("Database connection established with Azure AD token")
