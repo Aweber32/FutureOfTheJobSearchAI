@@ -12,7 +12,7 @@ on:
 
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
-  PYTHON_VERSION: '3.11' # Stable version with full ML library support
+  PYTHON_VERSION: '3.11' # set this to the python version to use (supports 3.6, 3.7, 3.8)
 
 jobs:
   build:
@@ -71,9 +71,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_C6E0E6396AD24CBEB1B2CD036914B3AA }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E51011E5B4C44B11901BE026375D60B8 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_CEC9C4E769DE493FBCE571E3583CBD22 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_2DDE0846716946159B13792C91734B8B }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_2C15163C93D24816A0BC3166FE466486 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F70959546C2C47D39FD0EF6C39496982 }}
 
       - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1
@@ -82,6 +82,4 @@ jobs:
           app-name: 'futureofthejobsearchai'
           slot-name: 'Production'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          scm-do-build-during-deployment: true
-          enable-oryx-build: true
           
