@@ -17,7 +17,14 @@
   },
   "functionTimeout": "00:10:00",
   "concurrency": {
-    "dynamicConcurrencyEnabled": true,
-    "snapshotPersistenceEnabled": true
+    "dynamicConcurrencyEnabled": false,
+    "snapshotPersistenceEnabled": false
+  },
+  "healthMonitor": {
+    "enabled": true,
+    "healthCheckInterval": "00:00:10",
+    "healthCheckWindow": "00:02:00",
+    "healthCheckThreshold": 6,
+    "counterThreshold": 0.80
   }
 }

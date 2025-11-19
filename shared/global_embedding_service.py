@@ -12,7 +12,13 @@ class EmbeddingService:
         if cls._model is None:
             model_name = os.getenv("EMBEDDING_MODEL_PATH", "all-MiniLM-L6-v2")
             logging.info(f"Loading embedding model: {model_name}")
+            
+            import time
+            start = time.time()
             cls._model = SentenceTransformer(model_name)
+            elapsed = time.time() - start
+            logging.info(f"Model loaded in {elapsed:.2f} seconds")
+            
         return cls._model
 
     @classmethod

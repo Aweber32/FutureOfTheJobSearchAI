@@ -73,21 +73,39 @@ def trigger_embedding(req: func.HttpRequest) -> func.HttpResponse:
         
         logging.info(f'Processing embedding for {entity_type} ID: {entity_id}')
         
-        # Generate embedding
-        result = EmbeddingService.trigger_embedding(entity_type, str(entity_id))
+        # Generate embedding with timeout awareness
+        import time
+        start_time = time.time()
         
-        return func.HttpResponse(
-            json.dumps(result),
-            status_code=200,
-            mimetype="application/json"
-        )
+        try:
+            result = EmbeddingService.trigger_embedding(entity_type, str(entity_id))
+            elapsed = time.time() - start_time
+            logging.info(f'Embedding generated in {elapsed:.2f} seconds')
+            
+            return func.HttpResponse(
+                json.dumps(result),
+                status_code=200,
+                mimetype="application/json"
+            )
+        except TimeoutError:
+            elapsed = time.time() - start_time
+            logging.error(f'Timeout after {elapsed:.2f} seconds')
+            return func.HttpResponse(
+                json.dumps({
+                    "status": "error",
+                    "message": f"Request timed out after {elapsed:.2f} seconds. Try again or use smaller batch."
+                }),
+                status_code=504,  # Gateway Timeout
+                mimetype="application/json"
+            )
         
     except Exception as e:
         logging.error(f'Error processing embedding: {str(e)}', exc_info=True)
         return func.HttpResponse(
             json.dumps({
                 "status": "error",
-                "message": str(e)
+                "message": str(e),
+                "type": type(e).__name__
             }),
             status_code=500,
             mimetype="application/json"
