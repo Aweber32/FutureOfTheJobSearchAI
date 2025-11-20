@@ -1,6 +1,7 @@
 """
 Azure Functions App - Embedding Service
 HTTP trigger endpoint for generating embeddings from candidate and position data
+Remote build enabled for Linux Flex Consumption
 """
 import logging
 import json
