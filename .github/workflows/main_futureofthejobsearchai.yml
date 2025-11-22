@@ -46,6 +46,11 @@ jobs:
           docker push ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.AZURE_FUNCTIONAPP_NAME }}:${{ github.sha }}
           docker push ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.AZURE_FUNCTIONAPP_NAME }}:latest
 
+      - name: Verify Azure subscription and Container App access
+        run: |
+          echo "Checking Container Apps..."
+          az containerapp list --resource-group futureofthejobsearch --output table || echo "Failed to list Container Apps"
+          
       - name: Deploy to Azure Container Apps
         run: |
           az containerapp update \
