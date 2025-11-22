@@ -1,0 +1,40 @@
+# Git
+.git/
+.github/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation (not needed at runtime)
+*.md
+!README.md
+
+# Tests
+tests/
+
+# Local settings
+local.settings.json
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+
+# Model cache (will download at runtime)
+.cache/
+models/

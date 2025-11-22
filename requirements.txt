@@ -4,5 +4,7 @@ azure-identity>=1.12.0
 sentence-transformers>=2.2.2
 pyodbc>=4.0.39
 numpy>=1.21.6
-transformers>=4.30.0
+# Use CPU-only torch to reduce size significantly
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch>=2.0.0
+transformers>=4.30.0

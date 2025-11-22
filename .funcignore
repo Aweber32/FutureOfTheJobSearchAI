@@ -1,0 +1,43 @@
+# Ignore virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# Ignore Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Ignore git
+.git/
+.github/
+.gitignore
+
+# Ignore IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore model files (will be downloaded on first run)
+*.bin
+*.safetensors
+*.pth
+*.onnx
+*.h5
+*.pkl
+
+# Ignore large Python packages (will be installed via requirements.txt)
+.python_packages/
+
+# Ignore test and documentation files
+tests/
+*.md
+!README.md
+
+# Ignore local settings
+local.settings.json
