@@ -46,11 +46,10 @@ jobs:
           docker push ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.AZURE_FUNCTIONAPP_NAME }}:${{ github.sha }}
           docker push ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.AZURE_FUNCTIONAPP_NAME }}:latest
 
-      - name: Deploy to Azure Functions (Container)
+      - name: Deploy to Azure Container Apps
         run: |
-          az functionapp config container set \
+          az containerapp update \
             --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
             --resource-group futureofthejobsearch \
-            --docker-custom-image-name ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.AZURE_FUNCTIONAPP_NAME }}:latest \
-            --docker-registry-server-url https://${{ env.REGISTRY_NAME }}.azurecr.io
+            --image ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.AZURE_FUNCTIONAPP_NAME }}:${{ github.sha }}
           
