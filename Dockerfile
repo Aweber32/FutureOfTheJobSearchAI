@@ -25,3 +25,7 @@ WORKDIR /home/site/wwwroot
 
 # Model will be downloaded on first run and cached in /tmp
 # This keeps the image small and allows for 0-replica scaling
+
+# CRITICAL: Start the Azure Functions host
+# This command starts the Python worker properly
+CMD [ "/azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost" ]
