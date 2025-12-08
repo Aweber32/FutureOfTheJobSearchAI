@@ -1,32 +1,40 @@
-# Use the official Azure Functions Python base image
-FROM mcr.microsoft.com/azure-functions/python:4-python3.11
+# Use lightweight Python base image instead of Azure Functions
+FROM python:3.11-slim
 
-# Set environment variables for Container Apps
-ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
-    AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
-    PYTHONUNBUFFERED=1 \
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
     TRANSFORMERS_CACHE=/tmp/.cache/huggingface \
-    HF_HOME=/tmp/.cache/huggingface
+    HF_HOME=/tmp/.cache/huggingface \
+    DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies for pyodbc (ODBC SQL Server driver)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    curl \
+    gnupg \
+    unixodbc-dev \
+    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update \
+    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create working directory
+WORKDIR /app
 
 # Copy requirements first for better layer caching
-COPY requirements.txt /home/site/wwwroot/
+COPY requirements.txt .
 
-# Install dependencies
-# Use CPU-only PyTorch to reduce image size significantly
-RUN cd /home/site/wwwroot && \
-    pip install --no-cache-dir -r requirements.txt && \
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt && \
     pip cache purge
 
 # Copy application code
-COPY . /home/site/wwwroot
-
-# Set working directory
-WORKDIR /home/site/wwwroot
+COPY . .
 
 # Model will be downloaded on first run and cached in /tmp
 # This keeps the image small and allows for 0-replica scaling
 
-# Don't set CMD here - Container Apps needs to set it explicitly
-# The proper command for Container Apps with Azure Functions Python is:
-# /opt/startup/start_nonappservice.sh
-# This script properly initializes the Python worker
+# Run the custom queue processor
+CMD ["python", "-u", "queue_processor.py"]

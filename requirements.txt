@@ -1,5 +1,5 @@
-# Azure Functions and dependencies for ELEV8R Embedding Service
-azure-functions>=1.18.0
+# Azure Storage and dependencies for Embedding Service
+azure-storage-queue>=12.5.0
 azure-identity>=1.12.0
 sentence-transformers>=2.2.2
 pyodbc>=4.0.39
