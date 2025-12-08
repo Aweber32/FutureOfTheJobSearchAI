@@ -12,13 +12,18 @@ from azure.storage.queue import QueueClient
 from azure.identity import DefaultAzureCredential
 from shared.global_embedding_service import EmbeddingService
 
-# Configure logging
+# Configure logging - force unbuffered output for Container Apps
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[logging.StreamHandler(sys.stdout)],
+    force=True
 )
 logger = logging.getLogger(__name__)
+
+# Also configure Azure SDK logging to see storage operations
+azure_logger = logging.getLogger('azure')
+azure_logger.setLevel(logging.WARNING)  # Reduce Azure SDK noise
 
 # Configuration from environment variables
 STORAGE_ACCOUNT_NAME = os.getenv('AzureWebJobsStorage__accountName', 'futureofthejobsearcb26e')
@@ -34,12 +39,14 @@ class QueueProcessor:
     
     def __init__(self):
         """Initialize queue clients with managed identity authentication"""
+        print("========== QUEUE PROCESSOR INITIALIZING ==========", flush=True)
         logger.info("========== QUEUE PROCESSOR INITIALIZING ==========")
         logger.info(f"Storage Account: {STORAGE_ACCOUNT_NAME}")
         logger.info(f"Queue: {QUEUE_NAME}")
         logger.info(f"Poison Queue: {POISON_QUEUE_NAME}")
         logger.info(f"Max Dequeue Count: {MAX_DEQUEUE_COUNT}")
         logger.info(f"Poll Interval: {POLL_INTERVAL_SECONDS}s")
+        sys.stdout.flush()
         
         # Use managed identity for authentication
         credential = DefaultAzureCredential()
@@ -49,8 +56,10 @@ class QueueProcessor:
         self.queue_client = QueueClient.from_queue_url(queue_url, credential=credential)
         self.poison_queue_client = QueueClient.from_queue_url(poison_queue_url, credential=credential)
         
+        print("✓ Queue clients initialized successfully", flush=True)
         logger.info("✓ Queue clients initialized successfully")
         logger.info("========== QUEUE PROCESSOR READY ==========")
+        sys.stdout.flush()
     
     def process_message(self, message):
         """
@@ -174,6 +183,7 @@ class QueueProcessor:
                 
                 for message in messages:
                     message_processed = True
+                    print(f"📨 Received message: {message.id} (dequeue count: {message.dequeue_count})", flush=True)
                     
                     # Check if message has exceeded max dequeue count
                     if message.dequeue_count > MAX_DEQUEUE_COUNT:
@@ -191,10 +201,12 @@ class QueueProcessor:
                     if success:
                         # Delete message from queue on success
                         self.queue_client.delete_message(message)
+                        print(f"✅ DELETED message {message.id} from queue", flush=True)
                         logger.info(f"✓ Deleted message {message.id} from queue")
                     else:
                         # Message will become visible again after visibility timeout
                         # and can be retried up to MAX_DEQUEUE_COUNT times
+                        print(f"⚠️  FAILED - Message {message.id} will retry (attempt {message.dequeue_count}/{MAX_DEQUEUE_COUNT})", flush=True)
                         logger.warning(f"⚠️ Message {message.id} will be retried (attempt {message.dequeue_count}/{MAX_DEQUEUE_COUNT})")
                         
                         # If this was the last attempt, move to poison queue
