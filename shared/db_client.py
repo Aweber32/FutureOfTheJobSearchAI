@@ -86,20 +86,27 @@ class DBClient:
             token_bytes = credential.get_token("https://database.windows.net/.default").token.encode("UTF-16-LE")
             token_struct = struct.pack(f'<I{len(token_bytes)}s', len(token_bytes), token_bytes)
             
-            # Connect without authentication in connection string, use token instead
-            conn_str_no_auth = self.conn_str.replace("Authentication=Active Directory Default;", "")
-            conn_str_no_auth = conn_str_no_auth.replace("Authentication=ActiveDirectoryIntegrated;", "")
-            conn_str_no_auth = conn_str_no_auth.replace("Authentication=ActiveDirectoryInteractive;", "")
+            # When using token-based auth, rebuild connection string without Authentication and Encrypt
+            # pyodbc with attrs_before requires these to be removed
+            import platform
+            import re
             
-            # Add Driver if missing - detect platform
-            if "Driver=" not in conn_str_no_auth:
-                import platform
-                if platform.system() == "Linux":
-                    # Linux uses ODBC Driver 18 or 17 for SQL Server
-                    conn_str_no_auth = "Driver={ODBC Driver 18 for SQL Server};" + conn_str_no_auth
-                else:
-                    # Windows
-                    conn_str_no_auth = "Driver={ODBC Driver 17 for SQL Server};" + conn_str_no_auth
+            # Extract server and database from original connection string
+            server_match = re.search(r'Server=tcp:([^;,]+)', self.conn_str)
+            db_match = re.search(r'(?:Database|Initial Catalog)=([^;]+)', self.conn_str)
+            
+            server = server_match.group(1) if server_match else os.getenv("AZURE_SQL_SERVER", "futureofthejobsearch.database.windows.net")
+            database = db_match.group(1) if db_match else os.getenv("AZURE_SQL_DATABASE", "qa-futureofthejobsearch")
+            
+            # Build clean connection string for token-based auth
+            # Driver must be specified, other params minimal
+            driver = "ODBC Driver 18 for SQL Server" if platform.system() == "Linux" else "ODBC Driver 17 for SQL Server"
+            conn_str_no_auth = (
+                f"Driver={{{driver}}};"
+                f"Server=tcp:{server},1433;"
+                f"Database={database};"
+                f"Connection Timeout=30;"
+            )
             
             conn = pyodbc.connect(conn_str_no_auth, attrs_before={1256: token_struct}, timeout=30)
             logging.debug("Database connection established with Azure AD token")
